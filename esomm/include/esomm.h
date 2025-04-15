@@ -1,10 +1,9 @@
 #pragma once
 
 #include <QtWidgets/QWidget>
-#include "ui_esomm.h"
+#include "ui/ui_esomm.h"
 
-class ESOMM : public QWidget
-{
+class ESOMM : public QWidget {
     Q_OBJECT
 
 public:

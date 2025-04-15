@@ -6,6 +6,11 @@ include(qt.cmake)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${PROJECT_SOURCE_DIR}/ui)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR}
     COMPONENTS
@@ -15,40 +20,63 @@ find_package(Qt${QT_VERSION_MAJOR}
 )
 qt_standard_project_setup()
 
-set(PROJECT_SOURCES
-    main.cpp
-    esomm.ui
-    esomm.h
-    esomm.cpp
-    esomm.rc
+set(ESOMM_SOURCES
+    src/esomm.cpp
+    src/main.cpp
+    ui/esomm.ui
+    include/esomm.h
 )
 
-qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+qt_add_executable(esomm)
 
-set_target_properties(${PROJECT_NAME}
+set_target_properties(esomm
     PROPERTIES
         WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_sources(esomm
+    PUBLIC
+        ${ESOMM_SOURCES}
+)
+
+target_link_libraries(esomm
     PUBLIC
         Qt::Core
         Qt::Gui
         Qt::Widgets
 )
-target_precompile_headers(${PROJECT_NAME} PUBLIC stdafx.h)
+
+target_include_directories(esomm
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/ui
+        ${PROJECT_SOURCE_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+#[[
+target_precompile_headers(esomm
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/stdafx.h
+)
+]]
 
 if(WIN32)
     get_target_property(_qmake_executable Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
     get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
     find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
 
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    add_custom_command(TARGET esomm POST_BUILD
         COMMAND "${WINDEPLOYQT_EXECUTABLE}"
             --no-compiler-runtime
             --no-translations
             --no-system-d3d-compiler
-            "$<TARGET_FILE:${PROJECT_NAME}>"
+            "$<TARGET_FILE:esomm>"
         COMMENT "Running windeployqt..."
     )
 endif()
+
+add_subdirectory(src)
+add_subdirectory(include)
+add_subdirectory(ui)

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "esomm.h"
 
 ESOMM::ESOMM(QWidget *parent)
@@ -7,5 +6,4 @@ ESOMM::ESOMM(QWidget *parent)
     ui.setupUi(this);
 }
 
-ESOMM::~ESOMM()
-{}
+ESOMM::~ESOMM(){}
