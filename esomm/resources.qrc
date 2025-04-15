@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/Obit.qss</file>
+    </qresource>
+</RCC>
+     

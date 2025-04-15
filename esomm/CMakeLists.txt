@@ -34,9 +34,15 @@ set_target_properties(esomm
         WIN32_EXECUTABLE TRUE
 )
 
+if(WIN32)
+    target_sources(esomm PRIVATE esomm.rc)
+endif()
+     
+
 target_sources(esomm
     PUBLIC
         ${ESOMM_SOURCES}
+        ${RESOURCES}
 )
 
 target_link_libraries(esomm
