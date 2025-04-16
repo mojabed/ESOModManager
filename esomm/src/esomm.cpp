@@ -1,8 +1,6 @@
 #include "esomm.h"
 
-ESOMM::ESOMM(QWidget *parent)
-    : QWidget(parent)
-{
+ESOMM::ESOMM(QWidget *parent) : QWidget(parent) {
     ui.setupUi(this);
 }
 

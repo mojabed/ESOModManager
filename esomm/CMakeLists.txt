@@ -21,10 +21,10 @@ find_package(Qt${QT_VERSION_MAJOR}
 qt_standard_project_setup()
 
 set(ESOMM_SOURCES
-    src/esomm.cpp
+    #src/esomm.cpp
     src/main.cpp
     ui/esomm.ui
-    include/esomm.h
+    #include/esomm.h
 )
 
 qt_add_executable(esomm)

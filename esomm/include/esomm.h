@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtWidgets/QWidget>
 #include "ui/ui_esomm.h"
+#include <QtWidgets/QWidget>
 
 class ESOMM : public QWidget {
     Q_OBJECT
