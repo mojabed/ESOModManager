@@ -3,6 +3,7 @@
 set(SRC
     esomm.cpp
     logger.cpp
+    pathing.cpp
 )
 
 target_sources(esomm
