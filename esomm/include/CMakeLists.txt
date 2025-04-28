@@ -4,6 +4,7 @@ set(INCLUDE_SOURCES
     esomm.h
     logger.h
     pathing.h
+    http_client.h
 )
 
 target_sources(esomm

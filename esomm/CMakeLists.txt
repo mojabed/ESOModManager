@@ -11,12 +11,13 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${PROJECT_SOURCE_DIR}/ui)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR}
-    COMPONENTS
+#find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Network)
+find_package(Qt6
+    REQUIRED COMPONENTS
         Core
         Gui
         Widgets
+        Network
 )
 qt_standard_project_setup()
 
@@ -48,6 +49,7 @@ target_link_libraries(esomm
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::Network
 )
 
 target_include_directories(esomm
