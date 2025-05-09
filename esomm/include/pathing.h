@@ -26,9 +26,11 @@ public:
     bool isWritable(const QString& path);
     QString getUserDataPath();
     QString getAddonsPath();
+    QString getAppConfigPath();
+    QString getAppDataPath();
 
 private:
-    QString docsPath, addonsPath;
+    QString docsPath, addonsPath, appConfigPath, appDataPath;
     static Pathing* paths;
     static QMutex mutex;
 

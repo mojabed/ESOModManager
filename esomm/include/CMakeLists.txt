@@ -5,6 +5,8 @@ set(INCLUDE_SOURCES
     logger.h
     pathing.h
     http_client.h
+    startingwindow.h
+    esomm_style.h
 )
 
 target_sources(esomm

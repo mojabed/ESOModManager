@@ -16,7 +16,7 @@ public:
     explicit Logger(QObject *parent = nullptr);
     ~Logger();
 
-    static void init(const QString& filePath = "logs/esomm.log");
+    static void init();
     static void messageHandler(QtMsgType type, 
         const QMessageLogContext& context, const QString& msg);
 

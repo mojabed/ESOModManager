@@ -1,6 +1,7 @@
 #include "logger.h"
 #include <QDateTime>
 #include <QDir>
+#include <QStandardPaths>
 
 static QMutex mutex;
 QFile Logger::logFile;
@@ -16,31 +17,50 @@ Logger::~Logger() {
     }
 }
 
-void Logger::init(const QString& filePath) {
-    // create logs directory
-    QDir logDir = QFileInfo(filePath).absoluteDir();
-    if (!logDir.exists()) {
-        logDir.mkpath(logDir.absolutePath());
-    }
-
-    // write to esomm.log
-    logFile.setFileName(filePath);
-    if (logFile.open(QIODevice::WriteOnly)) {
-        logStream.setDevice(&logFile);
-        qInstallMessageHandler(Logger::messageHandler);
-        qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss} [%{type}] (%{file}:%{line}): %{message} %{if-critical}%{backtrace}%{endif}");
-    }
-    else {
-        qWarning() << "Failed to open log file:" << filePath;
-    }
-}
-
 void Logger::messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
-    QMutexLocker locker(&mutex);
-    logStream << qFormatLogMessage(type, context, msg);
+    QString formattedMsg = qFormatLogMessage(type, context, msg);
+
+    logStream << formattedMsg << Qt::endl;
 
     // stderr pipe for debugging
-    #ifdef QT_DEBUG
+#ifdef QT_DEBUG
     QTextStream(stderr) << msg << Qt::endl;
-    #endif
+#endif
+}
+
+void Logger::init() {  
+   QString logDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/logs";  
+   QDir logDir(logDirPath);  
+
+   // Create logs directory if it doesn't exist  
+   if (!logDir.exists()) {  
+       fprintf(stderr, "Creating logs directory at: %s\n", logDirPath.toUtf8().constData());  
+       logDir.mkpath(logDirPath);  
+   }  
+
+   qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss.zzz} [%{type}] (%{file}:%{line}) %{message}");
+   QString filePath = logDirPath + "/esomm.log";  
+   fprintf(stderr, "Log file path: %s\n", filePath.toUtf8().constData());  
+   fflush(stderr);  
+
+   // write to esomm.log  
+   logFile.setFileName(filePath);  
+   if (logFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
+       logStream.setDevice(&logFile);
+
+       logStream << Qt::endl; // Ensure flushing after each write
+
+       qInstallMessageHandler(Logger::messageHandler);
+
+       logStream << "<==========> Application started at "
+           << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")
+           << " <==========>" << Qt::endl;
+   } else {  
+       fprintf(stderr, "Failed to open log file: %s (error: %s)\n",  
+           filePath.toUtf8().constData(),  
+           logFile.errorString().toUtf8().constData());  
+       return;  
+   }
+
+   logStream << "Logger initialized, Qt version:" << QT_VERSION_STR << Qt::endl;
 }

@@ -1,5 +1,4 @@
 #include "pathing.h"
-#include "logger.h"
 
 #include <QStandardPaths>
 #include <QFileInfo>
@@ -10,21 +9,46 @@ QMutex Pathing::mutex;
 
 Pathing::Pathing() {
     docsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    addonsPath = docsPath.append("/Elder Scrolls Online/live/AddOns");
-    // Create addons directory if it doesn't exist
+    addonsPath = docsPath + "/Elder Scrolls Online/live/AddOns";
+    appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    appConfigPath = appDataPath + "/config";
+
+    fprintf(stderr, "App data path: %s\n", appDataPath.toUtf8().constData());
+    fprintf(stderr, "Config path: %s\n", appConfigPath.toUtf8().constData());
+    fflush(stderr);
+
+    // Create directories if they don't exist
     try {
-        QDir dir(addonsPath);
-        if (!dir.exists()) {
-            qCInfo(loggerCategory) << "AddOns directory does not exist, creating at " << addonsPath;
-            if (!dir.mkpath(addonsPath)) {
-                qCWarning(loggerCategory) << "Failed to create AddOns directory at " << addonsPath;
+        QDir appDataDir(appDataPath);
+        if (!appDataDir.exists()) {
+            fprintf(stderr, "App data directory does not exist, creating at %s\n", appDataPath.toUtf8().constData());
+            if (!appDataDir.mkpath(appDataPath)) {
+                fprintf(stderr, "Failed to create app data directory at %s\n", appDataPath.toUtf8().constData());
             }
         }
-        qCInfo(loggerCategory) << "AddOns directory located at " << addonsPath;
+
+        QDir configDir(appConfigPath);
+        if (!configDir.exists()) {
+            fprintf(stderr, "Config directory does not exist, creating at %s\n", appConfigPath.toUtf8().constData());
+            if (!configDir.mkpath(appConfigPath)) {
+                fprintf(stderr, "Failed to create config directory at %s\n", appConfigPath.toUtf8().constData());
+            }
+        }
+
+        QDir dir(addonsPath);
+        if (!dir.exists()) {
+            fprintf(stderr, "AddOns directory does not exist, creating at %s\n", addonsPath.toUtf8().constData());
+            if (!dir.mkpath(addonsPath)) {
+                fprintf(stderr, "Failed to create AddOns directory at %s\n", addonsPath.toUtf8().constData());
+            }
+        }
+        fprintf(stderr, "AddOns directory located at %s\n", addonsPath.toUtf8().constData());
+        fflush(stderr);
         // Need to confirm with user if this is the correct path, get input from file dialog if not
 
     } catch (const std::exception& e) {
-        qCWarning(loggerCategory) << "Exception while creating AddOns directory: " << e.what();
+        fprintf(stderr, "Exception while creating AddOns directory: %s\n", e.what());
+        fflush(stderr);
     }
 }
 
@@ -43,4 +67,12 @@ QString Pathing::getUserDataPath() {
 
 QString Pathing::getAddonsPath() {
     return addonsPath;
+}
+
+QString Pathing::getAppConfigPath() {
+    return appConfigPath;
+}
+
+QString Pathing::getAppDataPath() {
+    return appDataPath;
 }

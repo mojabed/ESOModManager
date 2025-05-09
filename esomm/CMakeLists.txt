@@ -11,19 +11,25 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${PROJECT_SOURCE_DIR}/ui)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-#find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Network)
 find_package(Qt6
     REQUIRED COMPONENTS
         Core
         Gui
         Widgets
         Network
+        Concurrent
 )
 qt_standard_project_setup()
+
+set(RESOURCES
+    resources.qrc
+)
 
 set(ESOMM_SOURCES
     src/main.cpp
     ui/esomm.ui
+
+    ${RESOURCES}
 )
 
 qt_add_executable(esomm)
@@ -41,8 +47,12 @@ endif()
 target_sources(esomm
     PUBLIC
         ${ESOMM_SOURCES}
-        ${RESOURCES}
 )
+
+if(MSVC)
+    target_link_options(esomm PRIVATE "/SUBSYSTEM:CONSOLE")
+endif()
+   
 
 target_link_libraries(esomm
     PUBLIC
@@ -50,6 +60,7 @@ target_link_libraries(esomm
         Qt::Gui
         Qt::Widgets
         Qt::Network
+        Qt::Concurrent
 )
 
 target_include_directories(esomm
@@ -86,3 +97,4 @@ endif()
 add_subdirectory(src)
 add_subdirectory(include)
 add_subdirectory(ui)
+add_subdirectory(resources)

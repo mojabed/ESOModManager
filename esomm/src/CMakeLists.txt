@@ -5,6 +5,8 @@ set(SRC
     logger.cpp
     pathing.cpp
     http_client.cpp
+    startingwindow.cpp
+    esomm_style.cpp
 )
 
 target_sources(esomm

@@ -10,11 +10,15 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QJsonObject>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QThreadPool>
 
-constexpr int REQUEST_TIMEOUT_MS = 12000;
+constexpr int REQUEST_TIMEOUT_MS = 20000;
 constexpr int MAX_RETRIES = 3;
 
+// Singleton API handler
 class HttpClient : public QObject {
     Q_OBJECT
 
@@ -28,15 +32,14 @@ public:
     int activeDownloads() const;
 
 signals:
-    void requestCompleted(const QJsonObject &response);
     void downloadProgress(const QString& filePath, qint64 bytesReceived, qint64 bytesTotal);
     void downloadFinished(const QString& filePath);
     void downloadFailed(const QString& filePath, const QString& errorString);
     void allDownloadsFinished();
 
 private slots:
-    void onResponseReceived(QNetworkReply* reply);
     void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void checkDownloadQueue();
 
 private:
     struct Download {
@@ -49,15 +52,18 @@ private:
     QMap<QString, QString> m_headers;
     QQueue<Download> m_downloadQueue;
     QMap<QNetworkReply*, Download> m_activeDownloads;
+    QList<QFutureWatcher<void>*> m_futureWatchers;
+    QThreadPool* m_threadPool;
 
-    int m_maxConcurrentDownloads;
+    int m_maxConcurrentDownloads = 3;
     mutable QMutex m_qMutex;
 
     void initHeaders();
     bool saveToDisk(const QString& filename, QIODevice* data);
-    void processNext();
+    void processDownloadQueue();
     void start(const Download& download);
     void retryDownload(const Download& download);
+    void handleDownloadResult(QNetworkReply* reply);
 
     QNetworkRequest createRequest(const QUrl& url) const;
 };

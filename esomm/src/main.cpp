@@ -1,15 +1,21 @@
 #include "esomm.h"
 #include "logger.h"
+#include "pathing.h"
+#include "startingwindow.h"
+#include "esomm_style.h"
+
 #include <QtWidgets/QApplication>
 #include <QIcon>
-#include <QLoggingCategory>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     Logger::init();
+    Pathing::getPaths(); 
 
-    ESOMM mainWindow;
+    StyleLoader::apply();
+
+    StartingWindow mainWindow;
     mainWindow.setWindowIcon(QIcon(":/esomm.ico"));
     mainWindow.show();
 
