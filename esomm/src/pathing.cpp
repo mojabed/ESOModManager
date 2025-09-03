@@ -17,7 +17,6 @@ Pathing::Pathing() {
     fprintf(stderr, "Config path: %s\n", appConfigPath.toUtf8().constData());
     fflush(stderr);
 
-    // Create directories if they don't exist
     try {
         QDir appDataDir(appDataPath);
         if (!appDataDir.exists()) {

@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/esomm/include/homewindow.h
+/esomm/src/homewindow.cpp
+/esomm/src/esomm_style.cpp
+/esomm/include/esomm_style.h
+/esomm/resources/esomm.qss

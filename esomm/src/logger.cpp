@@ -32,7 +32,6 @@ void Logger::init() {
    QString logDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/logs";  
    QDir logDir(logDirPath);  
 
-   // Create logs directory if it doesn't exist  
    if (!logDir.exists()) {  
        fprintf(stderr, "Creating logs directory at: %s\n", logDirPath.toUtf8().constData());  
        logDir.mkpath(logDirPath);  
@@ -48,11 +47,11 @@ void Logger::init() {
    if (logFile.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {
        logStream.setDevice(&logFile);
 
-       logStream << Qt::endl; // Ensure flushing after each write
+       logStream << Qt::endl;
 
        qInstallMessageHandler(Logger::messageHandler);
 
-       logStream << "<==========> Application started at "
+       logStream << "<==========> ESOMM started at "
            << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")
            << " <==========>" << Qt::endl;
    } else {  

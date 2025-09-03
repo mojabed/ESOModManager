@@ -1,7 +1,6 @@
 #include "esomm.h"
 #include "logger.h"
 #include "pathing.h"
-#include "startingwindow.h"
 #include "esomm_style.h"
 
 #include <QtWidgets/QApplication>
@@ -11,11 +10,11 @@ int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     Logger::init();
-    Pathing::getPaths(); 
+    Pathing::getPaths(); // gets systems paths and ESO AddOns directory path
 
-    StyleLoader::apply();
+    //StyleLoader::apply(); // global config: esomm_style.qss
 
-    StartingWindow mainWindow;
+    ESOMM mainWindow;
     mainWindow.setWindowIcon(QIcon(":/esomm.ico"));
     mainWindow.show();
 

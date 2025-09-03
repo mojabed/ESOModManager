@@ -1,20 +1,610 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ESOMMClass</class>
- <widget class="QWidget" name="ESOMMClass">
+ <class>ESOMM</class>
+ <widget class="QWidget" name="ESOMM">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1509</width>
-    <height>819</height>
+    <width>1000</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>ESOMM</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">
+                QWidget {
+                background-color: #282c34;
+                color: #abb2bf;
+                font-family: &quot;Segoe UI&quot;, &quot;Arial&quot;, sans-serif;
+                }
+
+                QPushButton {
+                background-color: #3a3f4b;
+                color: #abb2bf;
+                border: none;
+                padding: 8px;
+                border-radius: 4px;
+                }
+
+                QPushButton:hover {
+                background-color: #4b5263;
+                }
+
+                QPushButton:pressed {
+                background-color: #5c6370;
+                }
+
+                QLineEdit, QTextEdit {
+                background-color: #1e2127;
+                color: #abb2bf;
+                border: 1px solid #181a1f;
+                border-radius: 4px;
+                padding: 4px;
+                }
+
+                QLabel {
+                color: #abb2bf;
+                }
+
+                QScrollBar:vertical {
+                background-color: #282c34;
+                width: 12px;
+                margin: 0px;
+                }
+
+                QScrollBar::handle:vertical {
+                background-color: #3a3f4b;
+                min-height: 20px;
+                border-radius: 6px;
+                }
+
+                QScrollBar::handle:vertical:hover {
+                background-color: #4b5263;
+                }
+
+                QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
+                }
+
+                QFrame#navBar {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                stop:0 #32363e, stop:1 #282c34);
+                border-bottom: 1px solid #181a1f;
+                }
+
+                QPushButton#btnManage, QPushButton#btnBrowse, QPushButton#btnSettings {
+                background-color: transparent;
+                color: #abb2bf;
+                font-weight: bold;
+                border-radius: 0;
+                padding: 12px 20px;
+                font-size: 16px; /* Increased font size */
+                }
+
+                QPushButton#btnManage:hover, QPushButton#btnBrowse:hover, QPushButton#btnSettings:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #ffffff;
+                }
+
+                QPushButton#btnManage:checked, QPushButton#btnBrowse:checked, QPushButton#btnSettings:checked {
+                background-color: rgba(255, 255, 255, 0.05);
+                color: #61afef;
+                border-bottom: 2px solid #61afef;
+                }
+            </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="navBar">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>50</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="leftMargin">
+       <number>12</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>12</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="logoLabel">
+        <property name="minimumSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>32</width>
+          <height>32</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap>:/esomm.ico</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnManage">
+        <property name="minimumSize">
+         <size>
+          <width>125</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">
+                                        QPushButton {
+                                        color: #61afef;
+                                        }
+                                    </string>
+        </property>
+        <property name="text">
+         <string>Manage</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">navButtonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnBrowse">
+        <property name="minimumSize">
+         <size>
+          <width>125</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string>Browse</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">navButtonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnSettings">
+        <property name="minimumSize">
+         <size>
+          <width>125</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string>Settings</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">navButtonGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="managePage">
+      <layout class="QHBoxLayout" name="manageLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="installedModsFrame">
+         <property name="minimumSize">
+          <size>
+           <width>350</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>350</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Plain</enum>
+         </property>
+         <layout class="QVBoxLayout" name="installedModsLayout">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QFrame" name="installedModsHeaderFrame">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+                                                        background-color: #21252b;
+                                                        border-bottom: 1px solid #181a1f;
+                                                    </string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Plain</enum>
+            </property>
+            <layout class="QHBoxLayout" name="installedModsHeaderLayout">
+             <item>
+              <widget class="QLabel" name="installedModsLabel">
+               <property name="styleSheet">
+                <string notr="true">
+                                                                    font-size: 16px;
+                                                                    font-weight: bold;
+                                                                </string>
+               </property>
+               <property name="text">
+                <string>Installed Mods</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="installedModsHeaderSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="refreshInstalledButton">
+               <property name="toolTip">
+                <string>Refresh installed mods</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset theme="refresh"/>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="installedModsListWidget">
+            <property name="styleSheet">
+             <string notr="true">
+                                                        QListWidget {
+                                                            background-color: #21252b;
+                                                            border: none;
+                                                        }
+                                                        QListWidget::item {
+                                                            padding: 10px;
+                                                            border-bottom: 1px solid #181a1f;
+                                                        }
+                                                        QListWidget::item:selected {
+                                                            background-color: #2c313a;
+                                                            color: #61afef;
+                                                        }
+                                                        QListWidget::item:hover:!selected {
+                                                            background-color: #2c313a;
+                                                        }
+                                                    </string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="modDetailsFrame">
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Plain</enum>
+         </property>
+         <layout class="QVBoxLayout" name="modDetailsLayout">
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>20</number>
+          </property>
+          <property name="rightMargin">
+           <number>20</number>
+          </property>
+          <property name="bottomMargin">
+           <number>20</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="modTitleLabel">
+            <property name="styleSheet">
+             <string notr="true">
+                                                        font-size: 22px;
+                                                        font-weight: bold;
+                                                        color: #61afef;
+                                                    </string>
+            </property>
+            <property name="text">
+             <string>Select a mod to view details</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="modVersionLabel">
+            <property name="styleSheet">
+             <string notr="true">
+                                                        font-size: 14px;
+                                                        color: #98c379;
+                                                    </string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="modAuthorLabel">
+            <property name="styleSheet">
+             <string notr="true">
+                                                        font-size: 14px;
+                                                    </string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="modActionsFrame">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Plain</enum>
+            </property>
+            <layout class="QHBoxLayout" name="modActionsLayout">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>10</number>
+             </property>
+             <property name="bottomMargin">
+              <number>10</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="updateModButton">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">
+                                                                    background-color: #98c379;
+                                                                    color: #282c34;
+                                                                </string>
+               </property>
+               <property name="text">
+                <string>Update</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="uninstallModButton">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">
+                                                                    background-color: #e06c75;
+                                                                    color: #282c34;
+                                                                </string>
+               </property>
+               <property name="text">
+                <string>Uninstall</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="modActionsSpacerRight">
+               <property name="orientation">
+                <enum>Qt::Orientation::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="modDescriptionLabel">
+            <property name="styleSheet">
+             <string notr="true">
+                                                        font-size: 14px;
+                                                    </string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="modDetailsSpacerBottom">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
- <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
  <connections/>
+ <buttongroups>
+  <buttongroup name="navButtonGroup"/>
+ </buttongroups>
 </ui>

@@ -8,7 +8,6 @@
 
 class Pathing {
 public:
-    // Enforce singleton
     Pathing(const Pathing&) = delete;
     Pathing& operator=(const Pathing&) = delete;
 

@@ -58,7 +58,6 @@ HttpClient::~HttpClient() {
     }
 }
 
-// Mimic the headers of a GET request
 void HttpClient::initHeaders() {
     m_headers = {
         {"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:137.0) Gecko/20100101 Firefox/137.0"},
@@ -74,7 +73,6 @@ void HttpClient::initHeaders() {
     };
 }
 
-// Prepares the request object
 QNetworkRequest HttpClient::createRequest(const QUrl& url) const {
     QNetworkRequest request(url);
 
@@ -88,7 +86,6 @@ QNetworkRequest HttpClient::createRequest(const QUrl& url) const {
     return request;
 }
 
-// Adds download jobs to queue for concurrent downloads
 void HttpClient::addDownload(const QUrl& url, const QString& filePath) {
     if (!url.isValid()) {
         qCWarning(loggerCategory) << "Invalid URL provided:" << url.toString();
@@ -139,7 +136,6 @@ void HttpClient::processDownloadQueue() {
             emit downloadProgress(filePath, progress, 100);
             });
 
-        // Monitor download progress
         connect(watcher, &QFutureWatcher<void>::finished, this, [this, watcher]() {
             m_futureWatchers.removeOne(watcher);
             watcher->deleteLater();
@@ -155,7 +151,6 @@ void HttpClient::processDownloadQueue() {
     }
 }
 
-// Begins a queued download
 void HttpClient::start(const Download& download) {
     QNetworkRequest request = createRequest(download.url);
 
@@ -199,7 +194,7 @@ void HttpClient::start(const Download& download) {
         timer->start(REQUEST_TIMEOUT_MS);
         }, Qt::QueuedConnection);
 
-    // Wait for the download to complete
+    // Wait for download 
     QEventLoop loop;
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit, Qt::QueuedConnection);
     loop.exec();
@@ -238,7 +233,7 @@ void HttpClient::handleDownloadResult(QNetworkReply* reply) {
     };
 
     if (reply->error()) {
-        if (download.retries < MAX_RETRIES) { // retry download until the object reports max retries reached
+        if (download.retries < MAX_RETRIES) {
             qCInfo(loggerCategory) << "Retrying download for" << url.toString()
                 << "Attempt" << (download.retries + 1) << "of" << MAX_RETRIES;
             retryDownload(download);
@@ -255,7 +250,7 @@ void HttpClient::handleDownloadResult(QNetworkReply* reply) {
             .arg(statusCode).arg(reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString());
         emitSignal(filePath, false, errorMsg);
 
-    } else { // Success downloading, save file
+    } else { // Success
         if (saveToDisk(filePath, reply)) {
             emitSignal(filePath, true);
         } else {
@@ -319,7 +314,6 @@ bool HttpClient::saveToDisk(const QString& filename, QIODevice* data) {
     return true;
 }
 
-// Provide progress updates
 void HttpClient::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
     QString filePath;
@@ -339,7 +333,6 @@ void HttpClient::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal) {
     emit downloadProgress(filePath, bytesReceived, bytesTotal);
 }
 
-// Retry download 
 void HttpClient::retryDownload(const Download& download) {
     Download retryDownload = download;
 
@@ -358,7 +351,7 @@ void HttpClient::setMaxConcurrentDownloads(int max) {
         QMutexLocker locker(&m_qMutex);
         m_maxConcurrentDownloads = qMax(1, max);
 
-        m_threadPool->setMaxThreadCount(m_maxConcurrentDownloads); // thread pool capacity
+        m_threadPool->setMaxThreadCount(m_maxConcurrentDownloads);
     }
     checkDownloadQueue();
 }
