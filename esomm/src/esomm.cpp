@@ -9,8 +9,8 @@ ESOMM::ESOMM(QWidget *parent) : QWidget(parent), manager(new Manager(this)), ui(
     setConnections();
     initUI();
 
-    manager->scanInstalledMods();
     manager->loadAvailableMods();
+    manager->scanInstalledMods();
 }
 
 ESOMM::~ESOMM(){}
@@ -157,6 +157,8 @@ void ESOMM::onInstalledModClicked(QListWidgetItem* item) {
     QString modId = item->data(Qt::UserRole).toString();
     ModInfo* mod = manager->getInstalledMod(modId);
 
+    qCInfo(loggerCategory) << "Installed mod clicked: " << modId << " - " << item->text();
+
     if (mod) {
         displayModDetails(*mod);
     }
@@ -223,10 +225,11 @@ void ESOMM::displayModDetails(const ModInfo& mod) {
     }
 
     if (ui->modVersionLabel) {
-        ui->modVersionLabel->setText(QString("Version: %1").arg(mod.version));
+        ui->modVersionLabel->setText(mod.version);
     }
 
     if (ui->modAuthorLabel) {
+        qCInfo(loggerCategory) << "Displaying author:" << mod.author;
         ui->modAuthorLabel->setText(QString("Author: %1").arg(mod.author));
     }
 
