@@ -37,15 +37,27 @@ signals:
     void availableModsChanged();
     void modActionStarted(const QString& action, const QString& modTitle);
     void modActionCompleted(const QString& action, const QString& modTitle, bool success);
+    void availableModsLoaded();
 
 private:
     Pathing* m_pathing;
     QDir m_addonsDir;
 
+    QHash<QString, ModInfo*> installedMods;
     QList<ModInfo> mods;
     HttpClient* httpClient;
+
+    void saveInstalledModsCache();
+    void loadInstalledModsCache();
+    QJsonObject modToJson(const ModInfo& mod);
+    ModInfo jsonToMod(const QJsonObject& modObject);
+    QString getInstalledCachePath() const;
+
     ModInfo parseInstalledMod(const QDir& dir);
     ModInfo parseAvailableMod(const QJsonObject& obj);
     void parseAvailableMods(const QString& filePath);
     //void updateModComparisons();
 };
+
+bool operator==(const ModInfo& a, const QString& b);
+bool operator==(const ModInfo& a, const ModInfo& b);

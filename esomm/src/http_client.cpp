@@ -8,6 +8,8 @@
 #include <QEventLoop>
 #include <QFileInfo>
 
+// NEED TO REFACTOR FOR CLARITY
+
 // HttpClient will run on a separate thread
 HttpClient::HttpClient(int maxConcurrentDownloads, QObject* parent)
     : QObject(parent), m_maxConcurrentDownloads(maxConcurrentDownloads) {

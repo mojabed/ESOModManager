@@ -9,8 +9,9 @@ ESOMM::ESOMM(QWidget *parent) : QWidget(parent), manager(new Manager(this)), ui(
     setConnections();
     initUI();
 
+    connect(manager, &Manager::availableModsLoaded, manager, &Manager::scanInstalledMods);
+
     manager->loadAvailableMods();
-    manager->scanInstalledMods();
 }
 
 ESOMM::~ESOMM(){}
@@ -145,19 +146,19 @@ void ESOMM::onModActionCompleted(const QString& action, const QString& modTitle,
     // Hide progress indicator
     // progressBar->setVisible(false);
 
-    // Refresh the appropriate list
     if (action == "install" || action == "uninstall" || action == "update") {
         manager->scanInstalledMods(); // This will trigger onInstalledModsChanged
+        qCInfo(loggerCategory) << "onModActionCompleted triggered scanInstalledMods";
     }
 }
 
 void ESOMM::onInstalledModClicked(QListWidgetItem* item) {
     if (!item) return;
 
-    QString modId = item->data(Qt::UserRole).toString();
+    const QString modId = item->data(Qt::UserRole).toString();
     ModInfo* mod = manager->getInstalledMod(modId);
 
-    qCInfo(loggerCategory) << "Installed mod clicked: " << modId << " - " << item->text();
+    qCInfo(loggerCategory) << "Installed mod clicked: " << modId;
 
     if (mod) {
         displayModDetails(*mod);
@@ -199,8 +200,9 @@ void ESOMM::updateInstalledModsList() {
     QList<ModInfo> installedMods = manager->getInstalledMods();
 
     for (const ModInfo& mod : installedMods) {
+        QString modEntry = !mod.id.isEmpty() ? mod.id : mod.title;
         QListWidgetItem* item = new QListWidgetItem(mod.title);
-        item->setData(Qt::UserRole, mod.id); // Store mod ID for later use
+        item->setData(Qt::UserRole, modEntry); // Store mod ID for later use
 
         // add more visual information
         if (mod.hasUpdate) {
@@ -211,7 +213,7 @@ void ESOMM::updateInstalledModsList() {
         ui->installedModsListWidget->addItem(item);
     }
 
-    clearModDetails(); // Clear selection when list updates
+    clearModDetails();
     selectedModId.clear();
 
     updateStatusText(QString("Found %1 installed mods").arg(installedMods.size()));
@@ -229,7 +231,6 @@ void ESOMM::displayModDetails(const ModInfo& mod) {
     }
 
     if (ui->modAuthorLabel) {
-        qCInfo(loggerCategory) << "Displaying author:" << mod.author;
         ui->modAuthorLabel->setText(QString("Author: %1").arg(mod.author));
     }
 

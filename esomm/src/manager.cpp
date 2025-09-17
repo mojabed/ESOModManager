@@ -18,20 +18,21 @@ Manager::Manager(QObject* parent)
     m_pathing = Pathing::getPaths();
     m_addonsDir = QDir(m_pathing->getAddonsPath());
 
+    loadInstalledModsCache();
+
     connect(httpClient, &HttpClient::downloadFinished,
         [this](const QString& filePath) {
             qCInfo(loggerCategory) << "Download completed:" << filePath;
 
             QString masterJsonPath = m_pathing->getAppDataPath() + "/master.json";
-            if (filePath == masterJsonPath) { // Master list
+            if (filePath == masterJsonPath) {
                 parseAvailableMods(masterJsonPath);
-            } else { // Mod download
+            } else {
                 // Extract mod ID from the file path
                 QFileInfo fileInfo(filePath);
                 QString modId = fileInfo.baseName();
 
                 emit modActionCompleted("install", modId, true);
-                scanInstalledMods();
             }
         });
 
@@ -40,7 +41,7 @@ Manager::Manager(QObject* parent)
             qCWarning(loggerCategory) << "Download failed:" << filePath << "-" << error;
 
             QString masterJsonPath = m_pathing->getAppDataPath() + "/master.json";
-            if (filePath == masterJsonPath) { // Master list
+            if (filePath == masterJsonPath) {
                 QFile existingFile(masterJsonPath);
                 if (existingFile.exists()) {
                     parseAvailableMods(masterJsonPath);
@@ -57,49 +58,79 @@ Manager::Manager(QObject* parent)
         });
 }
 
+bool operator==(const ModInfo &a, const QString &b) {
+    return a.title == b;
+}
+bool operator==(const ModInfo& a, const ModInfo& b) {
+    return a.title == b.title;
+}
+
 void Manager::scanInstalledMods() {
-    qCInfo(loggerCategory) << "Scanning installed mods in:" << m_addonsDir;
+    qCInfo(loggerCategory) << "Scanning installed mods in: " << m_addonsDir.absolutePath();
 
-    // Remove if mod is gone
-    mods.removeIf([](const ModInfo& mod) { return mod.isInstalled; });
-
+    if (!installedMods.isEmpty()) {
+        installedMods.clear();
+    }
     if (!m_addonsDir.exists()) {
-        qCWarning(loggerCategory) << "AddOns directory does not exist:" << m_addonsDir.absolutePath();
+        qCWarning(loggerCategory) << "AddOns directory does not exist: " << m_addonsDir.absolutePath();
         emit installedModsChanged();
         return;
     }
 
     QStringList subDirs = m_addonsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    int numInstalled = 0;
 
     for (const QString& subDir : subDirs) {
         QDir modDir(m_addonsDir.absoluteFilePath(subDir));
+        const QString modName = modDir.dirName();
+        const QString modPath = modDir.absolutePath();
 
-        ModInfo mod = parseInstalledMod(modDir);
-        mods.append(mod);
+        for (int i = 0; i < mods.size(); i++) {
+            if (mods[i].title == modName) {
+                mods[i].isInstalled = true;
+                mods[i].installPath = modPath;
+                qCInfo(loggerCategory) << "Found installed mod:" << mods[i].title << "at" << mods[i].installPath;
+                installedMods[modName] = &mods[i];
+
+                numInstalled++;
+                break;
+            }
+
+        }
+        
     }
 
-    qCInfo(loggerCategory) << "Found" << getInstalledMods().size() << "installed mods.";
+    qCInfo(loggerCategory) << "Scanned " << numInstalled << " installed mods.";
 
     //updateModComparisons();
     emit installedModsChanged();
 }
 
+ModInfo Manager::parseInstalledMod(const QDir& directory) {
+    ModInfo mod;
+    mod.isInstalled = true;
+    mod.installPath = directory.absolutePath();
+
+    return mod;
+}
+
 QList<ModInfo> Manager::getInstalledMods() const {
     QList<ModInfo> result;
-    for (const ModInfo& mod : mods) {
-        if (mod.isInstalled) {
-            result.append(mod);
+    for (ModInfo* mod : installedMods.values()) {
+        if (!result.contains(*mod)) {
+            qCInfo(loggerCategory) << "getInstalledMods found installed mod:" << mod->title;
+            result.append(*mod);
         }
     }
+    qCInfo(loggerCategory) << "getInstalledMods found " << result.size() << " installed mods";
     return result;
 }
 
 ModInfo* Manager::getInstalledMod(const QString& id) {
-    for (auto& mod : mods) {
-        if (mod.isInstalled && (mod.id == id || (id.isEmpty() && mod.title == id))) {
-            return &mod;
-        }
+    if (installedMods.contains(id)) {
+        return installedMods[id];
     }
+
     return nullptr;
 }
 
@@ -139,7 +170,7 @@ void Manager::parseAvailableMods(const QString& filePath) {
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qCWarning(loggerCategory) << "Failed to open master.json file:" << file.errorString();
-        emit availableModsChanged();
+        //emit availableModsChanged();
         return;
     }
     QByteArray jsonData = file.readAll();
@@ -161,9 +192,6 @@ void Manager::parseAvailableMods(const QString& filePath) {
         return;
     }
 
-    // Clear previously available mods
-    mods.removeIf([](const ModInfo& mod) { return !mod.isInstalled; });
-
     QJsonArray modsJsonArray = document.array();
 
     for (const QJsonValue& value : modsJsonArray) {
@@ -177,6 +205,7 @@ void Manager::parseAvailableMods(const QString& filePath) {
     qCInfo(loggerCategory) << "Loaded" << getAvailableMods().size() << "available mods";
     //updateModComparisons();
     emit availableModsChanged();
+    emit availableModsLoaded();
 }
 
 void Manager::loadAvailableMods() {
@@ -184,56 +213,8 @@ void Manager::loadAvailableMods() {
 
     QUrl masterUrl("https://api.mmoui.com/v4/game/ESO/filelist.json");
     QString masterJsonPath = m_pathing->getAppDataPath() + "/master.json";
-    QFile masterFile(masterJsonPath);
 
-    if (!masterFile.exists()) {
-        qCInfo(loggerCategory) << "Master list not found, downloading...";
-        httpClient->addDownload(masterUrl, masterJsonPath);
-    } else {
-        QNetworkAccessManager* manager = new QNetworkAccessManager(this);
-
-        // Check if existing master list is outdated
-        QNetworkRequest request(masterUrl);
-        QNetworkReply* reply = manager->head(request);
-
-        connect(reply, &QNetworkReply::finished, this, [this, reply, masterUrl, masterJsonPath, manager]() {
-            QFileInfo masterInfo(masterJsonPath);
-            QDateTime localLastModified = masterInfo.lastModified();
-
-            if (reply->error() == QNetworkReply::NoError) {
-                QDateTime remoteLastModified = reply->header(QNetworkRequest::LastModifiedHeader).toDateTime();
-
-                if (!remoteLastModified.isValid()) {
-                    // If server doesn't provide Last-Modified, use a fallback
-                    qCInfo(loggerCategory) << "Server didn't provide Last-Modified header, downloading to ensure latest version";
-                    httpClient->addDownload(masterUrl, masterJsonPath);
-                } else if (remoteLastModified > localLastModified) {
-                    qCInfo(loggerCategory) << "Newer master list available, updating...";
-                    httpClient->addDownload(masterUrl, masterJsonPath);
-                } else {
-                    // Local file is up to date, use it
-                    qCInfo(loggerCategory) << "Master list is up to date, using local copy";
-                    parseAvailableMods(masterJsonPath);
-                }
-            } else {
-                qCWarning(loggerCategory) << "Failed to verify master list version:" << reply->errorString();
-                qCInfo(loggerCategory) << "Using existing master list if available";
-                parseAvailableMods(masterJsonPath);
-            }
-
-            reply->deleteLater();
-            manager->deleteLater();
-        });
-    }
-}
-
-ModInfo Manager::parseInstalledMod(const QDir& directory) {
-    ModInfo mod;
-    mod.isInstalled = true;
-    mod.installPath = directory.absolutePath();
-    mod.title = directory.dirName();
-
-    return mod;
+    httpClient->addDownload(masterUrl, masterJsonPath);
 }
 
 ModInfo Manager::parseAvailableMod(const QJsonObject& jsonData) {
@@ -401,4 +382,149 @@ bool Manager::updateMod(const QString& id) {
 
     // Then install the new version
     return installMod(availableMod->id);
+}
+
+QString Manager::getInstalledCachePath() const {
+    return m_pathing->getAppDataPath() + "/installed_cache.json";
+}
+
+void Manager::saveInstalledModsCache() {
+    QDir cacheDir(m_pathing->getAppDataPath());
+    if (!cacheDir.exists()) {
+        cacheDir.mkpath(".");
+    }
+
+    QJsonArray installedArray;
+    for (ModInfo* mod : installedMods.values()) {
+        if (mod) {
+            installedArray.append(modToJson(*mod));
+        }
+    }
+
+    QJsonDocument installedDoc(installedArray);
+    QFile installedFile(getInstalledCachePath());
+    if (installedFile.open(QIODevice::WriteOnly)) {
+        installedFile.write(installedDoc.toJson());
+        installedFile.close();
+        qCInfo(loggerCategory) << "Saved " << installedMods.size() << " installed mods to cache.";
+    } else {
+        qCWarning(loggerCategory) << "Failed to save installed mods cache:" << installedFile.errorString();
+    }
+}
+
+void Manager::loadInstalledModsCache() {
+    QFile installedFile(getInstalledCachePath());
+
+    if (!installedFile.exists() || !installedFile.open(QIODevice::ReadOnly)) {
+        qCInfo(loggerCategory) << "Installed mods cache not found or could not be opened. Will perform a full scan.";
+        return;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(installedFile.readAll());
+    installedFile.close();
+
+    if (!doc.isArray()) {
+        qCWarning(loggerCategory) << "Installed mods cache is not a valid JSON array.";
+        installedFile.remove();
+        return;
+    }
+
+    QJsonArray installedArray = doc.array();
+    installedMods.clear();
+    installedMods.reserve(installedArray.size());
+
+    for (const QJsonValue& value : installedArray) {
+        ModInfo mod = jsonToMod(value.toObject());
+        installedMods[mod.title] = &mod;
+    }
+
+    qCInfo(loggerCategory) << "Loaded" << installedMods.size() << "installed mods from cache.";
+    emit installedModsChanged();
+}
+
+QJsonObject Manager::modToJson(const ModInfo& mod) {
+    QJsonObject json;
+
+    json["id"] = mod.id;
+    json["categoryId"] = mod.categoryId;
+    json["version"] = mod.version;
+    json["lastUpdate"] = mod.lastUpdate;
+    json["title"] = mod.title;
+    json["author"] = mod.author;
+    json["fileInfoUri"] = mod.fileInfoUri;
+    json["downloads"] = mod.downloads;
+    json["downloadsMonthly"] = mod.downloadsMonthly;
+    json["checksum"] = mod.checksum;
+    json["library"] = mod.library;
+    json["donationUrl"] = mod.donationUrl.toString();
+    json["downloadUrl"] = mod.downloadUrl.toString();
+    json["gameVersions"] = QJsonArray::fromStringList(mod.gameVersions);
+
+    QJsonArray addonsArray;
+    for (const auto& dep : mod.addons) {
+        QJsonObject depObj;
+        depObj["path"] = dep.path;
+        depObj["addOnVersion"] = dep.addOnVersion;
+        depObj["apiVersion"] = dep.apiVersion;
+        depObj["library"] = dep.library;
+        depObj["optionalDependencies"] = QJsonArray::fromStringList(dep.optionalDependencies);
+        depObj["requiredDependencies"] = QJsonArray::fromStringList(dep.requiredDependencies);
+    }
+    json["addons"] = addonsArray;
+
+    json["isInstalled"] = mod.isInstalled;
+    json["installPath"] = mod.installPath;
+
+    return json;
+}
+
+ModInfo Manager::jsonToMod(const QJsonObject& json) {
+    ModInfo mod;
+
+    mod.id = json["id"].toString();
+    mod.categoryId = json["categoryId"].toString();
+    mod.version = json["version"].toString();
+    mod.lastUpdate = json["lastUpdate"].toString();
+    mod.title = json["title"].toString();
+    mod.author = json["author"].toString();
+    mod.fileInfoUri = json["fileInfoUri"].toString();
+    mod.checksum = json["checksum"].toString();
+    mod.library = json["library"].toBool();
+    mod.donationUrl = QUrl(json["donationUrl"].toString());
+    mod.downloadUrl = QUrl(json["downloadUrl"].toString());
+
+    QString lastUpdateStr = json["lastUpdate"].toString();
+    if (!lastUpdateStr.isEmpty()) {
+        mod.lastUpdated = QDateTime::fromString(lastUpdateStr, Qt::ISODate);
+        if (!mod.lastUpdated.isValid()) {
+            mod.lastUpdated = QDateTime::fromString(lastUpdateStr, "yyyy-MM-dd");
+        }
+    }
+
+    if (json.contains("gameVersions") && json["gameVersions"].isArray()) {
+        QJsonArray versionsArray = json["gameVersions"].toArray();
+        for (const QJsonValue& version : versionsArray) {
+            mod.gameVersions.append(version.toString());
+        }
+    }
+
+    // Dependencies
+    if (json.contains("addons") && json["addons"].isArray()) {
+        QJsonArray addonsArray = json["addons"].toArray();
+        for (const QJsonValue& addonValue : addonsArray) {
+            QJsonObject addonObj = addonValue.toObject();
+            Dependancies dependency;
+            dependency.path = addonObj["path"].toString();
+            dependency.addOnVersion = addonObj["addOnVersion"].toString();
+            dependency.apiVersion = addonObj["apiVersion"].toString();
+            dependency.library = addonObj["library"].toBool();
+            // extend this to parse optional/required dependencies
+            mod.addons.append(dependency);
+        }
+    }
+
+    mod.isInstalled = json["isInstalled"].toBool(true);
+    mod.installPath = json["installPath"].toString();
+
+    return mod;
 }
